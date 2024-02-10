@@ -1,6 +1,6 @@
 package domain
 
-type Balance struct {
+type CustomerBalance struct {
 	id        int
 	client_id int
 	valor     int

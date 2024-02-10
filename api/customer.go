@@ -3,6 +3,7 @@ package api
 import (
 	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -14,31 +15,30 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	customer := rg.Group("/clientes")
 
 	customer.POST("/:id/transacoes", func(c *gin.Context) {
-		var dto CustomerDto
+		var dto TransactionDto
 		if err := c.ShouldBindJSON(&dto); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		customerId, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid customer ID"})
+		if !customerExists(customerId) {
+			c.JSON(http.StatusNotFound, gin.H{})
 			return
 		}
 
-		if dto.Tipo != "c" && dto.Tipo != "d" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction type"})
-			return
+		var result CustomerBalanceDto
+		if dto.Tipo == "d" {
+			result, err = DeductBalance(customerId, dto.Valor)
+			if err != nil {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+				return
+			}
+		} else if dto.Tipo == "c" {
+			// Presumably, you would have a similar function for adding balance
+			// e.g., err = AddBalance(customerId, dto.Valor)
 		}
 
-		if dto.Tipo == "d" && !canDeduct(customerId, dto.Valor) {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Insufficient funds"})
-			return
-		}
-
-		message := fmt.Sprintf("[Transaction received] id:%v, value:%v, kind:%v, description:%v",
-			customerId, dto.Valor, dto.Tipo, dto.Descricao)
-		c.JSON(http.StatusOK, gin.H{"message": message})
+		c.JSON(http.StatusOK, result)
 	})
 
 	customer.GET("/:id/extrato", func(c *gin.Context) {
@@ -46,31 +46,74 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	})
 }
 
-func customerExists(customerId string) bool {
+func customerExists(customerId int) bool {
 	var exists bool
 	err := database.GetDBPool().QueryRow(context.Background(),
 		"SELECT EXISTS(SELECT 1 FROM clientes WHERE id=$1)", customerId).Scan(&exists)
 	return err == nil && exists
 }
 
-func AddBalance(customerId, amount int) {
-	// Implement the logic to add balance to the customer's account
-}
-
-func DeductBalance(customerId, amount int) {
-	// Implement the logic to deduct balance from the customer's account ensuring the balance does not go below the limit
-}
-
-func canDeduct(customerId, amount int) bool {
-	var currentBalance, limit int
-	err := database.GetDBPool().QueryRow(context.Background(),
-		"SELECT saldo, limite FROM clientes WHERE id=$1", customerId).Scan(&currentBalance, &limit)
+func handleError(err error, tx *sql.Tx) bool {
 	if err != nil {
-		fmt.Println("Error retrieving customer balance and limit:", err)
-		return false
+		fmt.Println("Error:", err)
+		tx.Rollback() // Roll back the transaction if any error occurs
+		return true
 	}
+	return false
+}
+
+func DeductBalance(customerId, amount int) (CustomerBalanceDto, error) {
+	ctx := context.Background()
+	var costumerBalance CustomerBalanceDto
+
+	tx, err := database.GetDBPool().Begin(ctx)
+	if err != nil {
+		return costumerBalance, fmt.Errorf("starting transaction: %w", err)
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback(ctx)
+			panic(p)
+		}
+	}()
+
+	var currentBalance int
+	err = tx.QueryRow(ctx,
+		"SELECT valor FROM saldos WHERE id=$1 FOR UPDATE", customerId).Scan(&currentBalance)
+	if err != nil {
+		tx.Rollback(ctx)
+		return costumerBalance, fmt.Errorf("querying customer balance: %w", err)
+	}
+
+	var limit int
+	err = tx.QueryRow(ctx,
+		"SELECT limite FROM clientes WHERE id=$1", customerId).Scan(&limit)
+	if err != nil {
+		tx.Rollback(ctx)
+		return costumerBalance, fmt.Errorf("querying customer limit: %w", err)
+	}
+
+	// Calculate new balance and check if deduction is possible
 	newBalance := currentBalance - amount
-	return newBalance >= -limit
+	if newBalance < -limit {
+		tx.Rollback(ctx)
+		return costumerBalance, fmt.Errorf("deduction amount %d would violate customer limit", amount)
+	}
+
+	// Update the customer's balance
+	_, err = tx.Exec(ctx,
+		"UPDATE saldos SET valor=$1 WHERE id=$2", newBalance, customerId)
+	if err != nil {
+		tx.Rollback(ctx) // Rollback transaction on error
+		return costumerBalance, fmt.Errorf("updating customer balance: %w", err)
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(ctx); err != nil {
+		return costumerBalance, fmt.Errorf("committing transaction: %w", err)
+	}
+
+	return CustomerBalanceDto{Limite: limit, Saldo: newBalance}, nil
 }
 
 func GetCustomerBalance(customerId int) (CustomerBalanceDto, error) {
