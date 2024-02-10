@@ -3,12 +3,10 @@
 ## Setup and Configuration
 - [x] **Initialize Go Module**: Set up the Go project structure with modules for better dependency management.
 - [x] **Define load balancer**: Choose between ngnix or traefik as load balancer.
-  - Outcome: I Decided to use traefik just because I want it.
-- [] **Database Selection and Integration**: Choose a performant database, integrate with Go using an ORM or direct SQL, considering consistency and performance for operations.
-  - postgresql
+  - Outcome: I Decided to use nginx 
+- [x] **Database Selection and Integration**: Choose a performant database, integrate with Go using an ORM or direct SQL, considering consistency and performance for operations.
+  - postgresql will be the database.
 
-## API Development
-- [ ] **Define Data Models**: Create structs in Go corresponding to the database models, focusing on efficient data access patterns.
 
 ## Transactions Endpoint
 - [ ] **POST /clientes/[id]/transacoes Endpoint Implementation**: Implement the endpoint to handle credit and debit transactions, ensuring all fields are validated as per the requirements.
