@@ -9,7 +9,7 @@
 
 
 ## Transactions Endpoint
-- [ ] **POST /clientes/[id]/transacoes Endpoint Implementation**: Implement the endpoint to handle credit and debit transactions, ensuring all fields are validated as per the requirements.
+- [x] **POST /clientes/[id]/transacoes Endpoint Implementation**: Implement the endpoint to handle credit and debit transactions, ensuring all fields are validated as per the requirements.
   - Validate `id` as an integer representing the customer ID.
   - Ensure `valor` is a positive integer for transaction amount in cents.
   - Restrict `tipo` to "c" for credit or "d" for debit.
@@ -17,7 +17,7 @@
   - Implement business logic to prevent debit transactions from exceeding the customer's available limit.
   - Return appropriate HTTP status codes (200 for success, 422 for invalid debit operation, and 404 for non-existent customer ID).
 
-- [ ] **Transaction Business Logic**: Develop the logic to update the customer's balance and limit upon a transaction, and enforce rules for debit transactions.
+- [x] **Transaction Business Logic**: Develop the logic to update the customer's balance and limit upon a transaction, and enforce rules for debit transactions.
 
 - [ ] **Unit and Integration Tests for Transactions**: Ensure all edge cases and success scenarios are covered.
 
