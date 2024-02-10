@@ -3,12 +3,14 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func addCostumerRoutes(rg *gin.RouterGroup) {
 	costumer := rg.Group("/clientes")
+	appEnv := os.Getenv("INSTANCE_ID")
 
 	costumer.POST("/:id/transacoes", func(c *gin.Context) {
 		var dto CostumerDto
@@ -17,8 +19,8 @@ func addCostumerRoutes(rg *gin.RouterGroup) {
 			return
 		}
 		costumerId := c.Param("id")
-		message := fmt.Sprintf("Transaction received: id:%v, value:%v, kind:%v, description:%v",
-			costumerId, dto.Valor, dto.Tipo, dto.Descricao)
+		message := fmt.Sprintf("[%v][Transaction received] id:%v, value:%v, kind:%v, description:%v",
+			appEnv, costumerId, dto.Valor, dto.Tipo, dto.Descricao)
 
 		c.JSON(http.StatusOK, gin.H{"message": message})
 	})

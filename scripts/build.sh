@@ -1,0 +1,1 @@
+docker build -t brenonaraujo/rinhabackend-q12024 .

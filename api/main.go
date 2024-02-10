@@ -1,12 +1,18 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"os"
+
+	"github.com/gin-gonic/gin"
+)
 
 var router = gin.Default()
 
 func Run() {
+	appEnv := os.Getenv("INSTANCE_PORT")
 	getRoutes()
-	router.Run(":33888")
+	router.Run(fmt.Sprintf(":%v", appEnv))
 }
 
 func getRoutes() {
