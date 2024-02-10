@@ -10,7 +10,7 @@ services:
       - DB_HOSTNAME=db
       - INSTANCE_ID=api01
     ports:
-      - "33888:33888"
+      - "33910:33888"
     depends_on:
       - db
     deploy:
@@ -27,7 +27,7 @@ services:
       - DB_HOSTNAME=db
       - INSTANCE_ID=api02
     ports:
-      - "33889:33889"
+      - "33911:33888"
       
 
   nginx:
