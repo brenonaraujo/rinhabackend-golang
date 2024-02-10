@@ -13,6 +13,7 @@ func Migrate(dbUrl string) {
 	m, err := migrate.New(
 		"file://infra/database/migrations",
 		fmt.Sprintf("%v?sslmode=disable", dbUrl))
+
 	if err != nil {
 		log.Fatal(err)
 	}
