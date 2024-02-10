@@ -18,12 +18,6 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 
-COPY db_wait.sh /root/db_wait.sh
-
-RUN chmod +x /root/db_wait.sh
-
 EXPOSE 33888
-
-ENTRYPOINT ["/root/db_wait.sh", "db", "5432"]
 
 CMD ["./main"]

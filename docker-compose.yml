@@ -4,10 +4,10 @@ services:
   api01: &api
     image: brenonaraujo/rinhabackend-q12024:latest
     hostname: api01
+    restart: always
     environment:
       - DB_HOSTNAME=db
       - DATABASE_URL=postgres://admin:123@db:5432/rinha
-      - INSTANCE_ID=api01
     ports:
       - "33910:33888"
     depends_on:
@@ -24,7 +24,6 @@ services:
     environment:
       - DB_HOSTNAME=db
       - DATABASE_URL=postgres://admin:123@db:5432/rinha
-      - INSTANCE_ID=api02
     ports:
       - "33911:33888"
       
@@ -54,7 +53,7 @@ services:
       - "55735:5432"
     volumes:
       - ./infra/database/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: postgres -c checkpoint_timeout=1200 -c max_wal_size=4096
+    command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096
     deploy:
       resources:
         limits:
