@@ -52,6 +52,9 @@ services:
       - POSTGRES_DB=rinha
     ports:
       - "55735:5432"
+    volumes:
+      - ./infra/database/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c checkpoint_timeout=1200 -c max_wal_size=4096
     deploy:
       resources:
         limits:
