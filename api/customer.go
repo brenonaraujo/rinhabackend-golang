@@ -3,7 +3,6 @@ package api
 import (
 	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -51,15 +50,6 @@ func customerExists(customerId int) bool {
 	err := database.GetDBPool().QueryRow(context.Background(),
 		"SELECT EXISTS(SELECT 1 FROM clientes WHERE id=$1)", customerId).Scan(&exists)
 	return err == nil && exists
-}
-
-func handleError(err error, tx *sql.Tx) bool {
-	if err != nil {
-		fmt.Println("Error:", err)
-		tx.Rollback() // Roll back the transaction if any error occurs
-		return true
-	}
-	return false
 }
 
 func DeductBalance(customerId, amount int) (CustomerBalanceDto, error) {
