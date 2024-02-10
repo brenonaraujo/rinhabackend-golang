@@ -9,11 +9,9 @@ import (
 
 func main() {
 	databaseUrl := os.Getenv("DATABASE_URL")
-
 	if err := database.ConnectDB(databaseUrl); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer database.GetDBPool().Close()
-
 	api.Run()
 }

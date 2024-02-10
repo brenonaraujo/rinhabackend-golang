@@ -45,7 +45,15 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	})
 
 	customer.GET("/:id/extrato", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "extrato")
+		customerId, err := strconv.Atoi(c.Param("id"))
+		if err != nil || !customerExists(customerId) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
+			return
+		}
+		var customerStattemnt service.CustomerStattement
+		customerStattemnt, err = service.GetTransactions(customerId)
+
+		c.JSON(http.StatusOK, customerStattemnt)
 	})
 }
 
