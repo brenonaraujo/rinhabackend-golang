@@ -6,6 +6,7 @@ services:
     hostname: api01
     environment:
       - DB_HOSTNAME=db
+      - DATABASE_URL=postgres://admin:123@db:5432/rinha
       - INSTANCE_ID=api01
     ports:
       - "33910:33888"
@@ -22,6 +23,7 @@ services:
     hostname: api02
     environment:
       - DB_HOSTNAME=db
+      - DATABASE_URL=postgres://admin:123@db:5432/rinha
       - INSTANCE_ID=api02
     ports:
       - "33911:33888"

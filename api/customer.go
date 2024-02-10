@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func addCostumerRoutes(rg *gin.RouterGroup) {
+func addCustomerRoutes(rg *gin.RouterGroup) {
 	costumer := rg.Group("/clientes")
 
 	costumer.POST("/:id/transacoes", func(c *gin.Context) {
-		var dto CostumerDto
+		var dto CustomerDto
 		if err := c.ShouldBindJSON(&dto); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

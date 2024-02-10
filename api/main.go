@@ -11,5 +11,5 @@ func Run() {
 
 func getRoutes() {
 	v1 := router.Group("")
-	addCostumerRoutes(v1)
+	addCustomerRoutes(v1)
 }

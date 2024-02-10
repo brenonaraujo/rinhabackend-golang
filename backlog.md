@@ -4,7 +4,7 @@
 - [x] **Initialize Go Module**: Set up the Go project structure with modules for better dependency management.
 - [x] **Define load balancer**: Choose between ngnix or traefik as load balancer.
   - Outcome: I Decided to use nginx 
-- [x] **Database Selection and Integration**: Choose a performant database, integrate with Go using an ORM or direct SQL, considering consistency and performance for operations.
+- [x] **Database Selection and Integration**: Choose a performant database, integrate with Go using direct SQL, considering consistency and performance for operations.
   - postgresql will be the database.
 
 
