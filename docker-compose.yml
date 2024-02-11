@@ -1,17 +1,17 @@
 version: "3.5"
 
 services:
-  api01: &api
+  api01:
     image: brenonaraujo/rinhabackend-q12024:latest
-    hostname: api01
     restart: always
     environment:
-      - DB_HOSTNAME=db
-      - DATABASE_URL=postgres://admin:123@db:5432/rinha
-    ports:
-      - "33910:33888"
+      - DB_HOSTNAME=localhost
+      - DATABASE_URL=postgres://admin:123@localhost:55735/rinha
+      - GIN_MODE=release
+      - HTTP_PORT=:33910
     depends_on:
       - db
+    network_mode: host
     deploy:
       resources:
         limits:
@@ -19,14 +19,20 @@ services:
           memory: "100MB"
     
   api02:
-    <<: *api 
-    hostname: api02
+    image: brenonaraujo/rinhabackend-q12024:latest
+    restart: always
     environment:
-      - DB_HOSTNAME=db
-      - DATABASE_URL=postgres://admin:123@db:5432/rinha
-    ports:
-      - "33911:33888"
-      
+      - DB_HOSTNAME=localhost
+      - DATABASE_URL=postgres://admin:123@localhost:55735/rinha
+      - GIN_MODE=release
+      - HTTP_PORT=:33911
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: "100MB"
+
   nginx:
     image: nginx:latest
     volumes:
@@ -34,8 +40,7 @@ services:
     depends_on:
       - api01
       - api02
-    ports:
-      - "9999:9999" 
+    network_mode: host
     deploy:
       resources:
         limits:
@@ -44,23 +49,16 @@ services:
 
   db:
     image: postgres:latest
-    hostname: db
     environment:
       - POSTGRES_PASSWORD=123
       - POSTGRES_USER=admin
       - POSTGRES_DB=rinha
-    ports:
-      - "55735:5432"
     volumes:
       - ./infra/database/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096
+    command: postgres -p 55735 -c checkpoint_timeout=600 -c max_wal_size=4096 -c max_connections=500 -c shared_buffers=120MB
+    network_mode: host
     deploy:
       resources:
         limits:
           cpus: "1.0"
           memory: "330MB"
-
-networks:
-  default:
-    driver: bridge
-    name: rinha-nginx-2024q1
