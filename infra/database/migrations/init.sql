@@ -15,6 +15,8 @@ CREATE UNLOGGED TABLE transacoes (
 		FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
+CREATE INDEX ON transacoes (cliente_id, realizada_em DESC);
+
 CREATE UNLOGGED TABLE saldos (
 	id SERIAL PRIMARY KEY,
 	cliente_id INTEGER NOT NULL,

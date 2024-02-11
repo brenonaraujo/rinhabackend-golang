@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-type Saldo struct {
+type Statement struct {
 	Total       int       `json:"total"`
 	Limite      int       `json:"limite"`
 	DataExtrato time.Time `json:"data_extrato"`
 }
 
-type UltimasTransacoes []struct {
+type LastTransactions []struct {
 	Valor       int       `json:"valor"`
 	Tipo        string    `json:"tipo"`
 	Descricao   string    `json:"descricao"`
@@ -21,8 +21,8 @@ type UltimasTransacoes []struct {
 }
 
 type CustomerStatement struct {
-	Saldo              Saldo             `json:"saldo"`
-	Ultimas_transacoes UltimasTransacoes `json:"ultimas_transacoes"`
+	Saldo              Statement        `json:"saldo"`
+	Ultimas_transacoes LastTransactions `json:"ultimas_transacoes"`
 }
 
 func GetCustomerStatement(customerId int) (CustomerStatement, error) {
@@ -31,7 +31,7 @@ func GetCustomerStatement(customerId int) (CustomerStatement, error) {
 	ctx := context.Background()
 	db := database.GetDBPool()
 
-	var saldo Saldo
+	var saldo Statement
 	err := db.QueryRow(ctx, "SELECT valor, limite, NOW() FROM saldos JOIN clientes ON saldos.cliente_id = clientes.id WHERE cliente_id=$1", customerId).Scan(&saldo.Total, &saldo.Limite, &saldo.DataExtrato)
 	if err != nil {
 		return customerStatement, fmt.Errorf("querying customer transactions: %w", err)
@@ -42,7 +42,7 @@ func GetCustomerStatement(customerId int) (CustomerStatement, error) {
 		return customerStatement, fmt.Errorf("Failed to fetch transactions: %w", err)
 	}
 	defer rows.Close()
-	var lastTranscations UltimasTransacoes
+	var lastTranscations LastTransactions
 	for rows.Next() {
 		var t struct {
 			Valor       int       `json:"valor"`
