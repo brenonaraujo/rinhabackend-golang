@@ -17,8 +17,8 @@ func ConnectDB(dbUrl string) error {
 	}
 
 	dbPool.Config().MaxConnLifetime = 0
-	dbPool.Config().MaxConns = 100
-	dbPool.Config().MinConns = 10
+	dbPool.Config().MaxConns = 200
+	dbPool.Config().MinConns = 100
 
 	return nil
 }
