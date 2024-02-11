@@ -2,9 +2,7 @@ package api
 
 import (
 	"brenonaraujo/rinhabackend-q12024/domain"
-	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"brenonaraujo/rinhabackend-q12024/service"
-	"context"
 	"net/http"
 	"strconv"
 
@@ -63,7 +61,6 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 
 func customerExists(customerId int) bool {
 	var exists bool
-	err := database.GetDBPool().QueryRow(context.Background(),
-		"SELECT EXISTS(SELECT 1 FROM clientes WHERE id=$1)", customerId).Scan(&exists)
+	_, err := service.GetCustomer(customerId)
 	return err == nil && exists
 }
