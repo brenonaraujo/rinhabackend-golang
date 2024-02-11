@@ -5,6 +5,7 @@ import (
 	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"brenonaraujo/rinhabackend-q12024/service"
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -28,7 +29,7 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 
 		var result domain.Balance
 		if dto.Tipo == "d" {
-			result, err = service.DeductBalance(customerId, dto.Valor)
+			result, err = service.DeductBalance(customerId, dto.Valor, dto.Descricao)
 			if err != nil {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 				return
@@ -50,10 +51,15 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 			return
 		}
-		var customerStattemnt service.CustomerStattement
-		customerStattemnt, err = service.GetTransactions(customerId)
+		log.Printf("Handling extrato request!")
+		var customerStatement service.CustomerStatement
+		customerStatement, err = service.GetCustomerStatement(customerId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
-		c.JSON(http.StatusOK, customerStattemnt)
+		c.JSON(http.StatusOK, customerStatement)
 	})
 }
 

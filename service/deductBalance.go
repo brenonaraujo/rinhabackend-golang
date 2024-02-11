@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func DeductBalance(customerId, amount int) (domain.Balance, error) {
+func DeductBalance(customerId, amount int, description string) (domain.Balance, error) {
 	ctx := context.Background()
 	var costumerBalance domain.Balance
 
@@ -24,7 +24,8 @@ func DeductBalance(customerId, amount int) (domain.Balance, error) {
 
 	var currentBalance int
 	err = tx.QueryRow(ctx,
-		"SELECT valor FROM saldos WHERE id=$1 FOR UPDATE", customerId).Scan(&currentBalance)
+		"SELECT valor FROM saldos WHERE id=$1 FOR UPDATE",
+		customerId).Scan(&currentBalance)
 	if err != nil {
 		tx.Rollback(ctx)
 		return costumerBalance, fmt.Errorf("querying customer balance: %w", err)
@@ -42,7 +43,8 @@ func DeductBalance(customerId, amount int) (domain.Balance, error) {
 	newBalance := currentBalance - amount
 	if newBalance < -limit {
 		tx.Rollback(ctx)
-		return costumerBalance, fmt.Errorf("deduction amount %d would violate customer limit", amount)
+		return costumerBalance, fmt.Errorf("deduction amount %d would violate customer limit",
+			amount)
 	}
 
 	_, err = tx.Exec(ctx,
@@ -50,6 +52,14 @@ func DeductBalance(customerId, amount int) (domain.Balance, error) {
 	if err != nil {
 		tx.Rollback(ctx)
 		return costumerBalance, fmt.Errorf("updating customer balance: %w", err)
+	}
+
+	_, err = tx.Exec(ctx,
+		"INSERT INTO transacoes (id, cliente_id, valor, tipo, descricao, realizada_em) values(default, $1, $2, 'd', $3, now())",
+		customerId, amount, description)
+	if err != nil {
+		tx.Rollback(ctx)
+		return costumerBalance, fmt.Errorf("Isert transaction error: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
