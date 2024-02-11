@@ -15,7 +15,7 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	customer.POST("/:id/transacoes", func(c *gin.Context) {
 		var transaction TransactionRequest
 		if err := c.ShouldBindJSON(&transaction); err != nil {
-			c.Status(http.StatusBadRequest)
+			c.Status(http.StatusUnprocessableEntity)
 			return
 		}
 		customerId, err := strconv.Atoi(c.Param("id"))
@@ -60,7 +60,9 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 }
 
 func customerExists(customerId int) bool {
-	var exists bool
 	_, err := service.GetCustomer(customerId)
-	return err == nil && exists
+	if err != nil {
+		return false
+	}
+	return true
 }
