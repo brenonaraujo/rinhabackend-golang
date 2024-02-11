@@ -35,7 +35,7 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 				return
 			}
 		} else if dto.Tipo == "c" {
-			result, err = service.AddBalance(customerId, dto.Valor)
+			result, err = service.AddBalance(customerId, dto.Valor, dto.Descricao)
 			if err != nil {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 				return

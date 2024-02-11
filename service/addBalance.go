@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func AddBalance(customerId, amount int) (domain.Balance, error) {
+func AddBalance(customerId int, amount int, description string) (domain.Balance, error) {
 	ctx := context.Background()
 	var customerBalance domain.Balance
 
@@ -22,13 +22,20 @@ func AddBalance(customerId, amount int) (domain.Balance, error) {
 		}
 	}()
 
-	// Assuming 'saldos' table's 'cliente_id' is unique, use it directly without JOIN
 	var currentBalance, limit int
 	err = tx.QueryRow(ctx,
 		"SELECT valor, limite FROM saldos JOIN clientes ON saldos.cliente_id = clientes.id WHERE cliente_id=$1 FOR UPDATE", customerId).Scan(&currentBalance, &limit)
 	if err != nil {
 		tx.Rollback(ctx)
 		return customerBalance, fmt.Errorf("querying customer balance and limit: %w", err)
+	}
+
+	_, err = tx.Exec(ctx,
+		"INSERT INTO transacoes (id, cliente_id, valor, tipo, descricao, realizada_em) values(default, $1, $2, 'c', $3, now())",
+		customerId, amount, description)
+	if err != nil {
+		tx.Rollback(ctx)
+		return customerBalance, fmt.Errorf("Isert transaction error: %w", err)
 	}
 
 	newBalance := currentBalance + amount

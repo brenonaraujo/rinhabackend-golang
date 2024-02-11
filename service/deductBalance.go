@@ -9,11 +9,11 @@ import (
 
 func DeductBalance(customerId, amount int, description string) (domain.Balance, error) {
 	ctx := context.Background()
-	var costumerBalance domain.Balance
+	var customerBalance domain.Balance
 
 	tx, err := database.GetDBPool().Begin(ctx)
 	if err != nil {
-		return costumerBalance, fmt.Errorf("starting transaction: %w", err)
+		return customerBalance, fmt.Errorf("starting transaction: %w", err)
 	}
 	defer func() {
 		if p := recover(); p != nil {
@@ -28,7 +28,7 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		customerId).Scan(&currentBalance)
 	if err != nil {
 		tx.Rollback(ctx)
-		return costumerBalance, fmt.Errorf("querying customer balance: %w", err)
+		return customerBalance, fmt.Errorf("querying customer balance: %w", err)
 	}
 
 	// TODO: Set client to a memory cache to do not always request from db.
@@ -37,13 +37,13 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		"SELECT limite FROM clientes WHERE id=$1", customerId).Scan(&limit)
 	if err != nil {
 		tx.Rollback(ctx)
-		return costumerBalance, fmt.Errorf("querying customer limit: %w", err)
+		return customerBalance, fmt.Errorf("querying customer limit: %w", err)
 	}
 
 	newBalance := currentBalance - amount
 	if newBalance < -limit {
 		tx.Rollback(ctx)
-		return costumerBalance, fmt.Errorf("deduction amount %d would violate customer limit",
+		return customerBalance, fmt.Errorf("deduction amount %d would violate customer limit",
 			amount)
 	}
 
@@ -51,7 +51,7 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		"UPDATE saldos SET valor=$1 WHERE id=$2", newBalance, customerId)
 	if err != nil {
 		tx.Rollback(ctx)
-		return costumerBalance, fmt.Errorf("updating customer balance: %w", err)
+		return customerBalance, fmt.Errorf("updating customer balance: %w", err)
 	}
 
 	_, err = tx.Exec(ctx,
@@ -59,11 +59,11 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		customerId, amount, description)
 	if err != nil {
 		tx.Rollback(ctx)
-		return costumerBalance, fmt.Errorf("Isert transaction error: %w", err)
+		return customerBalance, fmt.Errorf("Isert transaction error: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return costumerBalance, fmt.Errorf("committing transaction: %w", err)
+		return customerBalance, fmt.Errorf("committing transaction: %w", err)
 	}
 
 	return domain.Balance{Limite: limit, Saldo: newBalance}, nil
