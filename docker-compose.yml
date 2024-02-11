@@ -55,7 +55,7 @@ services:
       - POSTGRES_DB=rinha
     volumes:
       - ./infra/database/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: postgres -p 55735 -c checkpoint_timeout=600 -c max_wal_size=4096 -c max_connections=500 -c shared_buffers=120MB
+    command: postgres -p 55735 -c checkpoint_timeout=600 -c max_wal_size=4096 -c max_connections=1000 -c shared_buffers=140MB
     network_mode: host
     deploy:
       resources:

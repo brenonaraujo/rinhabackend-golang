@@ -22,7 +22,7 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		}
 	}()
 
-	var customer *Customer
+	var customer *domain.Customer
 	customer, err = GetCustomer(customerId)
 	if err != nil {
 		tx.Rollback(ctx)

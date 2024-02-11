@@ -1,19 +1,14 @@
 package service
 
 import (
+	"brenonaraujo/rinhabackend-q12024/domain"
 	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"context"
 )
 
-type Customer struct {
-	Id           int `db:"id"`
-	AccountLimit int `db:"limite"`
-	Balance      int `db:"valor"`
-}
+var cachedCustomers = make(map[int]*domain.Customer)
 
-var cachedCustomers = make(map[int]*Customer)
-
-func GetCustomer(customerId int) (*Customer, error) {
+func GetCustomer(customerId int) (*domain.Customer, error) {
 	if customer, ok := cachedCustomers[customerId]; ok {
 		return customer, nil
 	}
@@ -21,7 +16,7 @@ func GetCustomer(customerId int) (*Customer, error) {
 	db := database.GetDBPool()
 	row := db.QueryRow(context.Background(), "SELECT id, limite FROM clientes WHERE id = $1", customerId)
 
-	var customer Customer
+	var customer domain.Customer
 	err := row.Scan(&customer.Id, &customer.AccountLimit)
 	if err != nil {
 		return nil, err

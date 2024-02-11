@@ -1,7 +1,7 @@
 package domain
 
 type Customer struct {
-	Id     int
-	Nome   string
-	Limite int
+	Id           int `db:"id"`
+	AccountLimit int `db:"limite"`
+	Balance      int `db:"valor"`
 }

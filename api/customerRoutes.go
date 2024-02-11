@@ -15,8 +15,8 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	customer := rg.Group("/clientes")
 
 	customer.POST("/:id/transacoes", func(c *gin.Context) {
-		var dto TransactionDto
-		if err := c.ShouldBindJSON(&dto); err != nil {
+		var transaction TransactionRequest
+		if err := c.ShouldBindJSON(&transaction); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
@@ -27,14 +27,14 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 		}
 
 		var result domain.Balance
-		if dto.Tipo == "d" {
-			result, err = service.DeductBalance(customerId, dto.Valor, dto.Descricao)
+		if transaction.Tipo == "d" {
+			result, err = service.DeductBalance(customerId, transaction.Valor, transaction.Descricao)
 			if err != nil {
 				c.Status(http.StatusUnprocessableEntity)
 				return
 			}
-		} else if dto.Tipo == "c" {
-			result, err = service.AddBalance(customerId, dto.Valor, dto.Descricao)
+		} else {
+			result, err = service.AddBalance(customerId, transaction.Valor, transaction.Descricao)
 			if err != nil {
 				c.Status(http.StatusUnprocessableEntity)
 				return
