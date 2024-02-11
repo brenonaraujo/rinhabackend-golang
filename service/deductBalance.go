@@ -22,28 +22,26 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		}
 	}()
 
+	var customer *Customer
+	customer, err = GetCustomer(customerId)
+	if err != nil {
+		tx.Rollback(ctx)
+		return customerBalance, err
+	}
+
 	var currentBalance int
 	err = tx.QueryRow(ctx,
-		"SELECT valor FROM saldos WHERE id=$1 FOR UPDATE",
+		"SELECT valor FROM saldos WHERE cliente_id=$1 FOR UPDATE",
 		customerId).Scan(&currentBalance)
 	if err != nil {
 		tx.Rollback(ctx)
-		return customerBalance, fmt.Errorf("querying customer balance: %w", err)
-	}
-
-	// TODO: Set client to a memory cache to do not always request from db.
-	var limit int
-	err = tx.QueryRow(ctx,
-		"SELECT limite FROM clientes WHERE id=$1", customerId).Scan(&limit)
-	if err != nil {
-		tx.Rollback(ctx)
-		return customerBalance, fmt.Errorf("querying customer limit: %w", err)
+		return customerBalance, err
 	}
 
 	newBalance := currentBalance - amount
-	if newBalance < -limit {
+	if newBalance < -customer.AccountLimit {
 		tx.Rollback(ctx)
-		return customerBalance, fmt.Errorf("deduction amount %d would violate customer limit",
+		return customerBalance, fmt.Errorf("Amount %d would violate customer limit",
 			amount)
 	}
 
@@ -66,5 +64,5 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 		return customerBalance, fmt.Errorf("committing transaction: %w", err)
 	}
 
-	return domain.Balance{Limite: limit, Saldo: newBalance}, nil
+	return domain.Balance{Limite: customer.AccountLimit, Saldo: newBalance}, nil
 }

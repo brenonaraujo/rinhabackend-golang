@@ -2,7 +2,7 @@ package api
 
 import "github.com/gin-gonic/gin"
 
-var router = gin.Default()
+var router = gin.New()
 
 func Run() {
 	getRoutes()

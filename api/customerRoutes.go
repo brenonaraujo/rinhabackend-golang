@@ -5,7 +5,6 @@ import (
 	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"brenonaraujo/rinhabackend-q12024/service"
 	"context"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -18,12 +17,12 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	customer.POST("/:id/transacoes", func(c *gin.Context) {
 		var dto TransactionDto
 		if err := c.ShouldBindJSON(&dto); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.Status(http.StatusBadRequest)
 			return
 		}
 		customerId, err := strconv.Atoi(c.Param("id"))
 		if !customerExists(customerId) {
-			c.JSON(http.StatusNotFound, gin.H{})
+			c.Status(http.StatusNotFound)
 			return
 		}
 
@@ -31,13 +30,13 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 		if dto.Tipo == "d" {
 			result, err = service.DeductBalance(customerId, dto.Valor, dto.Descricao)
 			if err != nil {
-				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+				c.Status(http.StatusUnprocessableEntity)
 				return
 			}
 		} else if dto.Tipo == "c" {
 			result, err = service.AddBalance(customerId, dto.Valor, dto.Descricao)
 			if err != nil {
-				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+				c.Status(http.StatusUnprocessableEntity)
 				return
 			}
 		}
@@ -48,14 +47,13 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	customer.GET("/:id/extrato", func(c *gin.Context) {
 		customerId, err := strconv.Atoi(c.Param("id"))
 		if err != nil || !customerExists(customerId) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
+			c.Status(http.StatusNotFound)
 			return
 		}
-		log.Printf("Handling extrato request!")
 		var customerStatement service.CustomerStatement
 		customerStatement, err = service.GetCustomerStatement(customerId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.Status(http.StatusInternalServerError)
 			return
 		}
 

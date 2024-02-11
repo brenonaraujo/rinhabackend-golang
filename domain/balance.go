@@ -1,6 +1,6 @@
 package domain
 
 type Balance struct {
-	Limite int
-	Saldo  int
+	Limite int `json:"limite"`
+	Saldo  int `json:"saldo"`
 }

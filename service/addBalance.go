@@ -22,20 +22,19 @@ func AddBalance(customerId int, amount int, description string) (domain.Balance,
 		}
 	}()
 
-	var currentBalance, limit int
-	err = tx.QueryRow(ctx,
-		"SELECT valor, limite FROM saldos JOIN clientes ON saldos.cliente_id = clientes.id WHERE cliente_id=$1 FOR UPDATE", customerId).Scan(&currentBalance, &limit)
+	var customer *Customer
+	customer, err = GetCustomer(customerId)
 	if err != nil {
 		tx.Rollback(ctx)
-		return customerBalance, fmt.Errorf("querying customer balance and limit: %w", err)
+		return customerBalance, err
 	}
 
-	_, err = tx.Exec(ctx,
-		"INSERT INTO transacoes (id, cliente_id, valor, tipo, descricao, realizada_em) values(default, $1, $2, 'c', $3, now())",
-		customerId, amount, description)
+	var currentBalance int
+	err = tx.QueryRow(ctx,
+		"SELECT valor FROM saldos WHERE cliente_id=$1 FOR UPDATE", customerId).Scan(&currentBalance)
 	if err != nil {
 		tx.Rollback(ctx)
-		return customerBalance, fmt.Errorf("Isert transaction error: %w", err)
+		return customerBalance, err
 	}
 
 	newBalance := currentBalance + amount
@@ -44,14 +43,22 @@ func AddBalance(customerId int, amount int, description string) (domain.Balance,
 		"UPDATE saldos SET valor=$1 WHERE cliente_id=$2", newBalance, customerId)
 	if err != nil {
 		tx.Rollback(ctx)
-		return customerBalance, fmt.Errorf("updating customer balance: %w", err)
+		return customerBalance, err
+	}
+
+	_, err = tx.Exec(ctx,
+		"INSERT INTO transacoes (id, cliente_id, valor, tipo, descricao, realizada_em) values(default, $1, $2, 'c', $3, now())",
+		customerId, amount, description)
+	if err != nil {
+		tx.Rollback(ctx)
+		return customerBalance, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return customerBalance, fmt.Errorf("committing transaction: %w", err)
+		return customerBalance, err
 	}
 
-	customerBalance.Limite = limit
+	customerBalance.Limite = customer.AccountLimit
 	customerBalance.Saldo = newBalance
 	return customerBalance, nil
 }
