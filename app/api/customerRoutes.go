@@ -1,7 +1,6 @@
 package api
 
 import (
-	"brenonaraujo/rinhabackend-q12024/domain"
 	"brenonaraujo/rinhabackend-q12024/service"
 	"net/http"
 	"strconv"
@@ -24,19 +23,11 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 			return
 		}
 
-		var result domain.Balance
-		if transaction.Tipo == "d" {
-			result, err = service.DeductBalance(customerId, transaction.Valor, transaction.Descricao)
-			if err != nil {
-				c.Status(http.StatusUnprocessableEntity)
-				return
-			}
-		} else {
-			result, err = service.AddBalance(customerId, transaction.Valor, transaction.Descricao)
-			if err != nil {
-				c.Status(http.StatusUnprocessableEntity)
-				return
-			}
+		result, err := service.TransactionProcess(c.Request.Context(),
+			customerId, transaction.Valor, transaction.Descricao, service.OperationType(transaction.Tipo))
+		if err != nil {
+			c.Status(http.StatusUnprocessableEntity)
+			return
 		}
 
 		c.JSON(http.StatusOK, result)
