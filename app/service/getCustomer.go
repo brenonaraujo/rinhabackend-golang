@@ -1,7 +1,7 @@
 package service
 
 import (
-	"brenonaraujo/rinhabackend-q12024/domain"
+	domain "brenonaraujo/rinhabackend-q12024/domain/entities"
 	"brenonaraujo/rinhabackend-q12024/infra/database"
 	"context"
 )

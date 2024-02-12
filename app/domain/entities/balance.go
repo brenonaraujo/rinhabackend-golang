@@ -1,4 +1,4 @@
-package domain
+package entities
 
 type Balance struct {
 	Limite int `json:"limite"`

@@ -1,4 +1,4 @@
-package domain
+package entities
 
 type Transaction struct {
 	Valor     int

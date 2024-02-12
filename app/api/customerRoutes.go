@@ -1,6 +1,7 @@
 package api
 
 import (
+	"brenonaraujo/rinhabackend-q12024/domain/entities"
 	"brenonaraujo/rinhabackend-q12024/service"
 	"net/http"
 	"strconv"
@@ -24,7 +25,7 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 		}
 
 		result, err := service.TransactionProcess(c.Request.Context(),
-			customerId, transaction.Valor, transaction.Descricao, service.OperationType(transaction.Tipo))
+			customerId, transaction.Valor, transaction.Descricao, entities.OperationType(transaction.Tipo))
 		if err != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			return

@@ -1,4 +1,4 @@
-package domain
+package entities
 
 type Customer struct {
 	Id           int `db:"id"`
