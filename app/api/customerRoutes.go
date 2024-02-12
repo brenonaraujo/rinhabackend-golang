@@ -13,8 +13,8 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 	customer := rg.Group("/clientes")
 
 	customer.POST("/:id/transacoes", func(c *gin.Context) {
-		var transaction TransactionRequest
-		if err := c.ShouldBindJSON(&transaction); err != nil {
+		var tx TransactionRequest
+		if err := c.ShouldBindJSON(&tx); err != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			return
 		}
@@ -25,7 +25,7 @@ func addCustomerRoutes(rg *gin.RouterGroup) {
 		}
 
 		result, err := service.TransactionProcess(c.Request.Context(),
-			customerId, transaction.Valor, transaction.Descricao, entities.OperationType(transaction.Tipo))
+			customerId, tx.Valor, tx.Descricao, entities.OperationType(tx.Tipo))
 		if err != nil {
 			c.Status(http.StatusUnprocessableEntity)
 			return
