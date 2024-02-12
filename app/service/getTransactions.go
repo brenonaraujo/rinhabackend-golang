@@ -8,21 +8,21 @@ import (
 )
 
 type Statement struct {
-	Total       int       `json:"total"`
-	Limite      int       `json:"limite"`
-	DataExtrato time.Time `json:"data_extrato"`
+	Total         int       `json:"total"`
+	Limit         int       `json:"limite"`
+	StatementDate time.Time `json:"data_extrato"`
 }
 
-type LastTransactions []struct {
-	Valor       int       `json:"valor"`
-	Tipo        string    `json:"tipo"`
-	Descricao   string    `json:"descricao"`
-	RealizadaEm time.Time `json:"realizada_em"`
+type LastTransaction struct {
+	Value       int       `json:"valor"`
+	Type        string    `json:"tipo"`
+	Description string    `json:"descricao"`
+	CreatedAt   time.Time `json:"realizada_em"`
 }
 
 type CustomerStatement struct {
-	Saldo              Statement        `json:"saldo"`
-	Ultimas_transacoes LastTransactions `json:"ultimas_transacoes"`
+	Statement        Statement         `json:"saldo"`
+	LastTransactions []LastTransaction `json:"ultimas_transacoes"`
 }
 
 func GetCustomerStatement(customerId int) (CustomerStatement, error) {
@@ -31,8 +31,9 @@ func GetCustomerStatement(customerId int) (CustomerStatement, error) {
 	ctx := context.Background()
 	db := database.GetDBPool()
 
-	var saldo Statement
-	err := db.QueryRow(ctx, "SELECT valor, limite, NOW() FROM saldos JOIN clientes ON saldos.cliente_id = clientes.id WHERE cliente_id=$1", customerId).Scan(&saldo.Total, &saldo.Limite, &saldo.DataExtrato)
+	var statement Statement
+	err := db.QueryRow(ctx, "SELECT valor, limite, NOW() FROM saldos JOIN clientes ON saldos.cliente_id = clientes.id WHERE cliente_id=$1",
+		customerId).Scan(&statement.Total, &statement.Limit, &statement.StatementDate)
 	if err != nil {
 		return customerStatement, fmt.Errorf("querying customer transactions: %w", err)
 	}
@@ -42,19 +43,14 @@ func GetCustomerStatement(customerId int) (CustomerStatement, error) {
 		return customerStatement, fmt.Errorf("Failed to fetch transactions: %w", err)
 	}
 	defer rows.Close()
-	var lastTranscations LastTransactions
+	var lastTranscations []LastTransaction
 	for rows.Next() {
-		var t struct {
-			Valor       int       `json:"valor"`
-			Tipo        string    `json:"tipo"`
-			Descricao   string    `json:"descricao"`
-			RealizadaEm time.Time `json:"realizada_em"`
-		}
-		if err := rows.Scan(&t.Valor, &t.Tipo, &t.Descricao, &t.RealizadaEm); err != nil {
+		var t LastTransaction
+		if err := rows.Scan(&t.Value, &t.Type, &t.Description, &t.CreatedAt); err != nil {
 			return customerStatement, fmt.Errorf("Failed to read transaction data: %w", err)
 		}
 		lastTranscations = append(lastTranscations, t)
 	}
-	customerStatement = CustomerStatement{Saldo: saldo, Ultimas_transacoes: lastTranscations}
+	customerStatement = CustomerStatement{Statement: statement, LastTransactions: lastTranscations}
 	return customerStatement, nil
 }

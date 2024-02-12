@@ -45,5 +45,5 @@ func TransactionProcess(ctx context.Context, customerId, amount int, description
 		return entities.Balance{}, fmt.Errorf("committing transaction: %w", err)
 	}
 
-	return entities.Balance{Limite: customer.AccountLimit, Saldo: newBalance}, nil
+	return entities.Balance{Limit: customer.AccountLimit, Balance: newBalance}, nil
 }
