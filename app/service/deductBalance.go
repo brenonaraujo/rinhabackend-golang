@@ -40,7 +40,6 @@ func DeductBalance(customerId, amount int, description string) (domain.Balance, 
 
 	newBalance := currentBalance - amount
 	if newBalance < -customer.AccountLimit {
-		tx.Rollback(ctx)
 		return customerBalance, fmt.Errorf("Amount %d would violate customer limit",
 			amount)
 	}
