@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func TransactionProcess(ctx context.Context, customerId, amount int, description string, opType entities.OperationType) (domain.Balance, error) {
+func TransactionProcess(ctx context.Context, customerId, amount int, description string, opType entities.OperationType) (entities.Balance, error) {
 	tx, err := database.GetDBPool().Begin(ctx)
 	if err != nil {
 		return entities.Balance{}, fmt.Errorf("starting transaction: %w", err)
