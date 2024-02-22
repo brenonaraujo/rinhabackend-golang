@@ -16,8 +16,8 @@ func ConnectDB(dbUrl string) error {
 		return fmt.Errorf("unable to connect to database: %v", err)
 	}
 
-	dbPool.Config().MaxConns = 180
-	dbPool.Config().MinConns = 150
+	dbPool.Config().MaxConns = 10
+	dbPool.Config().MinConns = 10
 
 	return nil
 }

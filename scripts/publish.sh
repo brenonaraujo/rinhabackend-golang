@@ -2,4 +2,4 @@ cd app
 
 docker build -t brnnai/rinhabackend-q12024 .
 
-docker-compose up
+docker image push brnnai/rinhabackend-q12024:latest

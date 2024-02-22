@@ -4,27 +4,27 @@ services:
   api01: &api
     image: brenonaraujo/rinhabackend-q12024:latest
     restart: always
-    hostname: api01
     environment:
-      - DB_HOSTNAME=db
-      - DATABASE_URL=postgres://admin:123@db:55735/rinha
+      - DB_HOSTNAME=localhost
+      - DATABASE_URL=postgres://admin:123@localhost:55735/rinha
       - GIN_MODE=release
-      - HTTP_PORT=:3000
+      - HTTP_PORT=:33810
     depends_on:
       - db
-    ports:
-      - "33910:3000"
+    network_mode: host
     deploy:
       resources:
         limits:
-          cpus: "0.15"
+          cpus: "0.2"
           memory: "30MB"
     
   api02:
     <<: *api
-    hostname: api02
-    ports:
-      - "33911:3000"
+    environment:
+      - DB_HOSTNAME=localhost
+      - DATABASE_URL=postgres://admin:123@localhost:55735/rinha
+      - GIN_MODE=release
+      - HTTP_PORT=:33811
 
   nginx:
     image: nginx:latest
@@ -33,13 +33,12 @@ services:
     depends_on:
       - api01
       - api02
-    ports:
-      - "9999:9999"
+    network_mode: host
     deploy:
       resources:
         limits:
           cpus: "0.1"
-          memory: "30MB"
+          memory: "20MB"
 
   db:
     image: postgres:latest
@@ -49,16 +48,10 @@ services:
       - POSTGRES_DB=rinha
     volumes:
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: postgres -p 55735 -c checkpoint_timeout=1200 -c max_wal_size=8224 -c max_connections=350 -c shared_buffers=130MB -c maintenance_work_mem=5536 -c effective_io_concurrency=200 -c random_page_cost=1 -c log_min_duration_statement=20 -c effective_cache_size=42704 -c work_mem=8224
-    ports:
-      - "55735:55735"
+    command: postgres -p 55735 -c checkpoint_timeout=1200 -c max_wal_size=6192 -c max_connections=25 -c shared_buffers=120MB -c maintenance_work_mem=5536 -c effective_io_concurrency=200 -c random_page_cost=1 -c log_min_duration_statement=20 -c effective_cache_size=42704 -c work_mem=6144
+    network_mode: host
     deploy:
       resources:
         limits:
-          cpus: "1.1"
-          memory: "450MB"
-
-networks:
-  default:
-    driver: bridge
-    name: rinha-nginx-2024q1
+          cpus: "1.0"
+          memory: "460MB"
