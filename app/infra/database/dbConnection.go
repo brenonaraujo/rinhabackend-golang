@@ -13,7 +13,7 @@ func ConnectDB(dbUrl string) error {
 	var err error
 	dbPool, err = pgxpool.New(context.Background(), dbUrl)
 	if err != nil {
-		return fmt.Errorf("unable to connect to database: %v", err)
+		return fmt.Errorf("Unable to connect to database: %v", err)
 	}
 
 	dbPool.Config().MaxConns = 10

@@ -1,1 +1,1 @@
-docker build -t brenonaraujo/rinhabackend-q12024 .
+docker build -t brnnai/rinhabackend-q12024 .
